@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Quality Assessment System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <i class="fas fa-fingerprint header-icon"></i>
+                <h1 class="header-title">Fingerprint Quality Assessment System</h1>
+                <div class="live-status">
+                    <span class="pulse-dot"></span>
+                    <span>LIVE</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="timestamp" id="currentTimestamp"></div>
+                <div class="system-status">
+                    <i class="fas fa-shield-alt status-icon active"></i>
+                    <i class="fas fa-database status-icon active"></i>
+                    <i class="fas fa-wifi status-icon active"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Summary Cards Row -->
+    <section class="summary-cards">
+        <div class="card summary-card">
+            <div class="card-icon">
+                <i class="fas fa-fingerprint"></i>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Total Scans</h3>
+                <div class="card-value" id="totalScans">50</div>
+                <div class="card-change positive">+12% from yesterday</div>
+            </div>
+        </div>
+
+        <div class="card summary-card">
+            <div class="card-icon good">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Good Quality</h3>
+                <div class="card-value" id="goodScans">13</div>
+                <div class="card-change positive">26%</div>
+            </div>
+        </div>
+
+        <div class="card summary-card">
+            <div class="card-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Warning</h3>
+                <div class="card-value" id="warningScans">23</div>
+                <div class="card-change neutral">46%</div>
+            </div>
+        </div>
+
+        <div class="card summary-card">
+            <div class="card-icon critical">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Critical</h3>
+                <div class="card-value" id="criticalScans">14</div>
+                <div class="card-change negative">28%</div>
+            </div>
+        </div>
+
+        <div class="card summary-card">
+            <div class="card-icon">
+                <i class="fas fa-gauge-high"></i>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Avg Quality Score</h3>
+                <div class="card-value" id="avgQuality">50.7</div>
+                <div class="card-change neutral">Score out of 100</div>
+            </div>
+        </div>
+
+        <div class="card summary-card">
+            <div class="card-icon flagged">
+                <i class="fas fa-flag"></i>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">Flagged Entries</h3>
+                <div class="card-value" id="flaggedEntries">19</div>
+                <div class="card-change negative">Requires attention</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <main class="main-content">
+        <!-- Left Column: Fingerprint Entries Table -->
+        <section class="left-column">
+            <div class="card table-container">
+                <div class="card-header">
+                    <h2>Recent Fingerprint Scans</h2>
+                    <div class="table-controls">
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="Good">Good</option>
+                            <option value="Warning">Warning</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                        <button class="btn-refresh" id="refreshData">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="fingerprint-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Subject</th>
+                                <th>Timestamp</th>
+                                <th>NFIQ2 Score</th>
+                                <th>Quality</th>
+                                <th>Status</th>
+                                <th>Minutiae</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fingerprintTableBody">
+                            <!-- Table rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button class="btn-page" id="prevPage">Previous</button>
+                    <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                    <button class="btn-page" id="nextPage">Next</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Charts and Analytics -->
+        <section class="right-column">
+            <!-- Quality Distribution Chart -->
+            <div class="card chart-container">
+                <div class="card-header">
+                    <h3>Quality Distribution</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="qualityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Time Series Chart -->
+            <div class="card chart-container">
+                <div class="card-header">
+                    <h3>Quality Trends (24h)</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Model Performance Metrics -->
+            <div class="card metrics-container">
+                <div class="card-header">
+                    <h3>Model Performance</h3>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Accuracy</div>
+                        <div class="metric-value">92.7%</div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 92.7%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Precision</div>
+                        <div class="metric-value">85.1%</div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 85.1%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Recall</div>
+                        <div class="metric-value">89.6%</div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 89.6%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">F1 Score</div>
+                        <div class="metric-value">87.3%</div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 87.3%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Section -->
+    <footer class="bottom-section">
+        <!-- System Alerts Panel -->
+        <div class="card alerts-container">
+            <div class="card-header">
+                <h3>System Alerts</h3>
+                <span class="alert-count" id="alertCount">3</span>
+            </div>
+            <div class="alerts-list" id="alertsList">
+                <!-- Alerts will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- System Status Panel -->
+        <div class="card status-container">
+            <div class="card-header">
+                <h3>System Status</h3>
+                <div class="live-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="liveUpdates" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span>Live Updates</span>
+                </div>
+            </div>
+            <div class="status-metrics">
+                <div class="status-metric">
+                    <div class="status-label">Processing Rate</div>
+                    <div class="status-value">39.4 <span class="status-unit">scans/min</span></div>
+                    <div class="status-indicator good"></div>
+                </div>
+                <div class="status-metric">
+                    <div class="status-label">System Uptime</div>
+                    <div class="status-value">95.41<span class="status-unit">%</span></div>
+                    <div class="status-indicator good"></div>
+                </div>
+                <div class="status-metric">
+                    <div class="status-label">Queue Size</div>
+                    <div class="status-value">12<span class="status-unit">pending</span></div>
+                    <div class="status-indicator warning"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Fingerprint Scan Details</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
